@@ -64,7 +64,16 @@ export default function Calendar() {
   }
 
   const handleSaveEvent = (newEvent: Event) => {
-    // Check for overlapping events
+    
+    /**
+     * This is handle save function 
+     * - First checking the overlapping by checking follwings
+     *   - previousEventId !== newEventId
+     *   - eventDate !== newEventDate (cuzz id is not the same then have to check the event date)
+     *   - 
+     *   
+     */
+
     const isOverlapping = events.some(event => {
       if (event.id === newEvent.id) return false // Skip the event being edited
       if (event.date !== newEvent.date) return false
@@ -106,18 +115,61 @@ export default function Calendar() {
   : events
 
   const handleExport = () => {
+    /**
+     * Get all the events happened in current month
+     * by providing the eventDates and currentDate
+     * and only return the events of this month
+     */
     const currentMonthEvents = events.filter(event => {
       const eventDate = parseISO(event.date)
       return isSameMonth(eventDate, currentDate)
     })
 
+
+    /**
+     * Here creating the two variable 
+     * After conditional executive we'll assign somethign into these
+     */
+
     let content: string
     let filename: string
 
+    /**
+     * Checking for the type and if the type is json
+     * we're stringify the 
+     * [
+     *    {
+     *      "some_data"
+     *    }
+     * ]
+     * 
+     * and filename based on current date in
+     */
     if (exportFormat === 'json') {
       content = JSON.stringify(currentMonthEvents, null, 2)
       filename = `events_${format(currentDate, 'yyyy-MM')}.json`
     } else {
+      /**
+       * Now comes to the csv files
+       * 
+       * We're first defining the headers that are going to be in csv file 
+       * 
+       * then we're creating csv content
+       * 
+       * when we do headers.join(",") 
+       * if joins the header like this 
+       * 
+       * 'id,name,date,startTime,endTime.....' (Now this becomes the header )
+       * 
+       * and after that we're putting the data below the header by checking each header
+       * 
+       * then again we're joining each data by /n that 
+       * puts event like => 
+       * header
+       * row 1 \n 
+       * row 2 
+       * ....
+       */
       const headers = ['id', 'name', 'date', 'startTime', 'endTime', 'description', 'color']
       const csvContent = [
         headers.join(','),
@@ -132,6 +184,13 @@ export default function Calendar() {
       filename = `events_${format(currentDate, 'yyyy-MM')}.csv`
     }
 
+    /**
+     * We always use blob to create a binary file that we pass in URL.createObject to download it 
+     * 
+     * and manually giving it in link and forcefully clicking it, not by user interation
+     * 
+     * then it gets downlaoded
+     */
     const blob = new Blob([content], { type: exportFormat === 'json' ? 'application/json' : 'text/csv' })
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
